@@ -46,6 +46,6 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
                 except:
                     h, t = h_n, t_n
             tr_loss_sum += torch.Tensor(layers_loss).mean()
+        print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')
         if callback is not None:
             callback()
-        print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')

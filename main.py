@@ -9,14 +9,19 @@ from src.utils.select_device import select_device
 
 def main():
     device = select_device()
-    TR_X_mnist, TR_Y_mnist, TS_X_mnist, TS_Y_mnist = load_mnist(device=device)
+    TR_SET, TS_SET = load_mnist(device=device)
     model = vgg8b(num_classes=10)
+
+    def callback():
+        accuracy_evaluate('ts_set', model, TR_SET)
+        accuracy_evaluate('ts_set', model, TS_SET)
+
     train_sigprop(
         model,
-        (TR_X_mnist, TR_Y_mnist),
+        TR_SET,
         epochs=2,
         device=device,
-        callback=lambda: accuracy_evaluate(model, (TS_X_mnist, TS_Y_mnist))
+        callback=callback
     )
 
 
