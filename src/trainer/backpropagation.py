@@ -2,7 +2,7 @@ import torch
 from tqdm.notebook import tqdm
 
 
-def train_backpropagation(model, TR_SET, epochs=10, batch_size=1024, device='cpu'):
+def train_backpropagation(model, TR_SET, epochs=10, batch_size=1024, device='cpu', callback=None):
     optim = torch.optim.Adam(model.parameters())
     criterion = torch.nn.CrossEntropyLoss()
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
@@ -16,4 +16,6 @@ def train_backpropagation(model, TR_SET, epochs=10, batch_size=1024, device='cpu
             tr_loss_sum += loss.item()
             loss.backward()
             optim.step()
+        if callback is not None:
+            callback()
         print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')

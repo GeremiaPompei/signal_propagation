@@ -12,8 +12,9 @@ def get_leaf_layers(m, device='cpu'):
     return leaves
 
 
-def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu'):
+def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None):
     optim = torch.optim.SGD(model.parameters(), lr=0.01)
+    criterion = torch.nn.CrossEntropyLoss()
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
     layers = get_leaf_layers(model, device=device)
     dim_o = layers[0].out_channels
@@ -33,7 +34,10 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu'):
                     h_n = layer(h)
                     t_n = output_embedding_layer(t).view(-1, dim_o, dim_w, dim_h)
                 optim.zero_grad()
-                loss = (t_n - h_n).abs().mean()
+                if i == len(layers) - 1:
+                    loss = criterion(h_n, TR_Y_MB)
+                else:
+                    loss = (t_n - h_n).abs().mean()
                 try:
                     loss.backward()
                     optim.step()
@@ -42,4 +46,6 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu'):
                 except:
                     h, t = h_n, t_n
             tr_loss_sum += torch.Tensor(layers_loss).mean()
+        if callback is not None:
+            callback()
         print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')
