@@ -26,7 +26,6 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu'):
             h, t = TR_X_MB, TR_Y_MB
             layers_loss = []
             for i, layer in enumerate(layers):
-                print(i)
                 if i > 0:
                     cat_ht = torch.cat((h, t)).squeeze()
                     h_n, t_n = layer(cat_ht).split(h.shape[0])
