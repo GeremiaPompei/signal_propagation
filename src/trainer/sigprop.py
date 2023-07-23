@@ -21,8 +21,8 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
     dim_o = layers[0].out_channels
     dim_w, dim_h = TR_X[0].shape[2], TR_X[0].shape[3]
     output_embedding_layer = torch.nn.Linear(TR_Y[0].shape[1], dim_o * dim_w * dim_h).to(device)
-    model.train()
     for epoch in range(epochs):
+        model.train()
         tr_loss_sum = 0
         for TR_X_MB, TR_Y_MB in tqdm(list(zip(TR_X, TR_Y))):
             h, t = TR_X_MB, TR_Y_MB
@@ -48,5 +48,6 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
                     h, t = h_n, t_n
             tr_loss_sum += torch.Tensor(layers_loss).mean()
         print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')
+        model.eval()
         if callback is not None:
             callback()

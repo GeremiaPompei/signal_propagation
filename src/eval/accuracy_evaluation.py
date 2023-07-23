@@ -4,7 +4,6 @@ from tqdm.notebook import tqdm
 
 def accuracy_evaluate(label, model, DS, batch_size=128):
     X, Y = [x.type(torch.float32).split(batch_size, 0) for x in DS]
-    model.eval()
     accuracy_sum = 0
     for X_MB, Y_MB in tqdm(list(zip(X, Y))):
         P_MB = model(X_MB)
