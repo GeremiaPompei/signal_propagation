@@ -1,0 +1,5 @@
+**.DS_Store
+MNIST
+.venv
+.idea
+**__pycache__

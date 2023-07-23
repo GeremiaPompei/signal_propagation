@@ -4,7 +4,7 @@ import torch
 from torchvision import datasets
 
 
-def load_mnist() -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+def load_mnist(device='cpu') -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Function able to download MNIST dataset and return it.
 
@@ -16,7 +16,7 @@ def load_mnist() -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
         os.mkdir(mnist_dir)
     TR_MNIST = datasets.MNIST(root=f'{mnist_dir}', train=True, download=True, transform=None)
     TS_MNIST = datasets.MNIST(root=f'{mnist_dir}', train=False, download=True, transform=None)
-    return TR_MNIST.train_data.type(torch.float).reshape(-1, 1, 28, 28), torch.nn.functional.one_hot(
-        TR_MNIST.train_labels), \
-           TS_MNIST.test_data.type(torch.float).reshape(-1, 1, 28, 28), torch.nn.functional.one_hot(
-        TS_MNIST.test_labels)
+    return TR_MNIST.train_data.type(torch.float).reshape(-1, 1, 28, 28).to(device), torch.nn.functional.one_hot(
+        TR_MNIST.train_labels).to(device), \
+           TS_MNIST.test_data.type(torch.float).reshape(-1, 1, 28, 28).to(device), torch.nn.functional.one_hot(
+        TS_MNIST.test_labels).to(device)

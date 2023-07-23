@@ -12,13 +12,13 @@ def get_leaf_layers(m):
     return leaves
 
 
-def train_sigprop(model, TR_SET, epochs=10, batch_size=1024):
+def train_sigprop(model, TR_SET, epochs=10, batch_size=1024, device='cpu'):
     optim = torch.optim.SGD(model.parameters(), lr=0.01)
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
     layers = get_leaf_layers(model)
     dim_o = layers[0].out_channels
     dim_w, dim_h = TR_X[0].shape[2], TR_X[0].shape[3]
-    output_embedding_layer = torch.nn.Linear(TR_Y[0].shape[1], dim_o * dim_w * dim_h)
+    output_embedding_layer = torch.nn.Linear(TR_Y[0].shape[1], dim_o * dim_w * dim_h).to(device)
     model.train()
     for epoch in tqdm(range(epochs)):
         tr_loss_sum = 0
