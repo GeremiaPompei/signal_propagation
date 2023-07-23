@@ -19,7 +19,7 @@ import torch.nn as nn
 
 class VGG(nn.Module):
 
-    def __init__(self, features, num_classes=10, init_weights=True, device='cpu'):
+    def __init__(self, features, num_classes=10, init_weights=True):
         super(VGG, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
@@ -30,7 +30,7 @@ class VGG(nn.Module):
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(4096, num_classes),
-        ).to(device)
+        )
         if init_weights:
             self._initialize_weights()
 
@@ -54,18 +54,18 @@ class VGG(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
-def make_layers(cfg, batch_norm=False, device='cpu'):
+def make_layers(cfg, batch_norm=False):
     layers = []
     in_channels = 1
     for v in cfg:
         if v == 'M':
-            layers += [nn.MaxPool2d(kernel_size=2, stride=2).to(device)]
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1).to(device)
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
             if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v).to(device), nn.ReLU(inplace=True).to(device)]
+                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
             else:
-                layers += [conv2d, nn.ReLU(inplace=True).to(device)]
+                layers += [conv2d, nn.ReLU(inplace=True)]
             in_channels = v
     return nn.Sequential(*layers)
 
@@ -84,14 +84,14 @@ cfgs = {
 }
 
 
-def _vgg(cfg, batch_norm, device, **kwargs):
-    model = VGG(make_layers(cfgs[cfg], batch_norm=batch_norm, device=device), **kwargs)
+def _vgg(cfg, batch_norm, **kwargs):
+    model = VGG(make_layers(cfgs[cfg], batch_norm=batch_norm), **kwargs)
     return model
 
 
-def vgg8b(device='cpu', **kwargs):
+def vgg8b(**kwargs):
     r"""VGG 11-layer model (configuration "A") from
     `"Very Deep Convolutional Networks For Large-Scale Image Recognition" <https://arxiv.org/pdf/1409.1556.pdf>`_
 
     """
-    return _vgg('vgg8b', False, device, **kwargs)
+    return _vgg('vgg8b', False, **kwargs)
