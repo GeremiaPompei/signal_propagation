@@ -16,6 +16,7 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
     if optim is None:
         optim = torch.optim.SGD(model.parameters(), lr=0.01)
     target_criterion = torch.nn.MSELoss()
+    classification_criterion = torch.nn.CrossEntropyLoss()
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
     layers = get_leaf_layers(model, device=device)
     dim_o = layers[0].out_channels
@@ -36,7 +37,7 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
                     t_n = output_embedding_layer(t).view(-1, dim_o, dim_w, dim_h)
                 optim.zero_grad()
                 if i == len(layers) - 1:
-                    loss = target_criterion(h_n, TR_Y_MB)
+                    loss = classification_criterion(h_n, TR_Y_MB.argmax(1))
                 else:
                     loss = target_criterion(h_n, t_n)
                 try:
