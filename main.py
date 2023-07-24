@@ -1,3 +1,5 @@
+import torch.optim
+
 from src.eval.accuracy_evaluation import accuracy_evaluate
 from src.loader.mnist_loader import load_mnist
 from src.model.resnet18 import ResNet18
@@ -21,7 +23,8 @@ def main():
         TR_SET,
         epochs=2,
         device=device,
-        callback=callback
+        callback=callback,
+        optim=torch.optim.Adam(model.parameters())
     )
 
 
