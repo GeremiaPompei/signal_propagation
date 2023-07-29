@@ -12,9 +12,8 @@ def get_leaf_layers(m, device='cpu'):
     return leaves
 
 
-def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None, optim=None):
-    if optim is None:
-        optim = torch.optim.SGD(model.parameters(), lr=0.01)
+def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None):
+    optim = torch.optim.Adam(model.parameters(), lr=5e-4)
     target_criterion = torch.nn.MSELoss()
     classification_criterion = torch.nn.CrossEntropyLoss()
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
@@ -37,7 +36,7 @@ def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callba
                     t_n = output_embedding_layer(t).view(-1, dim_o, dim_w, dim_h)
                 optim.zero_grad()
                 if i == len(layers) - 1:
-                    loss = classification_criterion(h_n, TR_Y_MB.argmax(1))
+                    loss = classification_criterion(h_n, TR_Y_MB)
                 else:
                     loss = target_criterion(h_n, t_n)
                 try:

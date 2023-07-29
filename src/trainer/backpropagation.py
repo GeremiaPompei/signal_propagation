@@ -2,12 +2,12 @@ import torch
 from tqdm.notebook import tqdm
 
 
-def train_backpropagation(model, TR_SET, epochs=10, batch_size=1024, device='cpu', callback=None):
-    optim = torch.optim.Adam(model.parameters())
+def train_backpropagation(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None):
+    optim = torch.optim.Adam(model.parameters(), lr=5e-4)
     criterion = torch.nn.CrossEntropyLoss()
     TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
-    model.train()
     for epoch in range(epochs):
+        model.train()
         tr_loss_sum = 0
         for TR_X_MB, TR_Y_MB in tqdm(list(zip(TR_X, TR_Y))):
             optim.zero_grad()
