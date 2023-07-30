@@ -1,6 +1,6 @@
 import torch
 from tqdm.notebook import tqdm
-
+from src.utils import log
 
 def crossentropy_evaluate(label, model, DS, batch_size=128):
     model.eval()
@@ -8,5 +8,5 @@ def crossentropy_evaluate(label, model, DS, batch_size=128):
     ce_sum = 0
     for X_MB, Y_MB in tqdm(list(zip(X, Y))):
         P_MB = model(X_MB)
-        ce_sum -= (Y_MB * torch.nn.functional.softmax(P_MB, dim=1).log()).mean(0).sum()
-    print(f'{label} cross-entropy: {ce_sum / len(X)}')
+        ce_sum += torch.nn.functional.cross_entropy(P_MB, Y_MB)
+    log.info(f'{label} cross-entropy: {ce_sum / len(X)}')

@@ -1,21 +1,14 @@
 import torch
-from tqdm.notebook import tqdm
+
+from src.trainer.trainer import Trainer
 
 
-def train_backpropagation(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None):
-    optim = torch.optim.Adam(model.parameters(), lr=5e-4)
-    criterion = torch.nn.CrossEntropyLoss()
-    TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
-    for epoch in range(epochs):
-        model.train()
-        tr_loss_sum = 0
-        for TR_X_MB, TR_Y_MB in tqdm(list(zip(TR_X, TR_Y))):
-            optim.zero_grad()
-            TR_P_MB = model(TR_X_MB)
-            loss = criterion(TR_P_MB, TR_Y_MB)
-            tr_loss_sum += loss.item()
-            loss.backward()
-            optim.step()
-        print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')
-        if callback is not None:
-            callback()
+class BackpropagationTrainer(Trainer):
+    def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
+        self.optim.zero_grad()
+        TR_P_MB = self.model(TR_X_MB)
+        loss = self.criterion(TR_P_MB, TR_Y_MB)
+        loss.backward()
+        self.optim.step()
+        self.lrs.step()
+        return loss.item()

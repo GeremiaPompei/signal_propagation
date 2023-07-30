@@ -1,5 +1,6 @@
 import torch
 from tqdm.notebook import tqdm
+from src.utils import log
 
 
 def accuracy_evaluate(label, model, DS, batch_size=128):
@@ -10,4 +11,4 @@ def accuracy_evaluate(label, model, DS, batch_size=128):
         P_MB = model(X_MB)
         accuracy_mb = ((P_MB.argmax(1) - Y_MB.argmax(1)) == 0).type(torch.float).mean()
         accuracy_sum += accuracy_mb
-    print(f'{label} accuracy: {accuracy_sum / len(X)}')
+    log.info(f'{label} accuracy: {accuracy_sum / len(X)}')
