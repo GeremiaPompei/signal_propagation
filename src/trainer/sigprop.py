@@ -1,53 +1,55 @@
 import torch
-from tqdm.notebook import tqdm
+
+from src.trainer.trainer import Trainer
 
 
-def get_leaf_layers(m, device='cpu'):
-    children = list(m.children())
+def get_leaf_layers(module: torch.nn.Module, device='cpu'):
+    children = list(module.children())
     if not children:
-        return [m.to(device)]
+        return [module.to(device)]
     leaves = []
-    for l in children:
-        leaves.extend(get_leaf_layers(l, device=device))
+    for layer in children:
+        leaves.extend(get_leaf_layers(layer, device=device))
     return leaves
 
 
-def train_sigprop(model, TR_SET, epochs=10, batch_size=128, device='cpu', callback=None):
-    optim = torch.optim.Adam(model.parameters(), lr=5e-4)
-    target_criterion = torch.nn.MSELoss()
-    classification_criterion = torch.nn.CrossEntropyLoss()
-    TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
-    layers = get_leaf_layers(model, device=device)
-    dim_o = layers[0].out_channels
-    dim_w, dim_h = TR_X[0].shape[2], TR_X[0].shape[3]
-    output_embedding_layer = torch.nn.Linear(TR_Y[0].shape[1], dim_o * dim_w * dim_h).to(device)
-    for epoch in range(epochs):
-        model.train()
-        tr_loss_sum = 0
-        for TR_X_MB, TR_Y_MB in tqdm(list(zip(TR_X, TR_Y))):
-            h, t = TR_X_MB, TR_Y_MB
-            layers_loss = []
-            for i, layer in enumerate(layers):
-                if i > 0:
-                    cat_ht = torch.cat((h, t)).squeeze()
-                    h_n, t_n = layer(cat_ht).split(h.shape[0])
-                else:
-                    h_n = layer(h)
-                    t_n = output_embedding_layer(t).view(-1, dim_o, dim_w, dim_h)
-                optim.zero_grad()
-                if i == len(layers) - 1:
-                    loss = classification_criterion(h_n, TR_Y_MB)
-                else:
-                    loss = target_criterion(h_n, t_n)
-                try:
-                    loss.backward()
-                    optim.step()
-                    h, t = h_n.detach(), t_n.detach()
-                    layers_loss.append(loss.item())
-                except:
-                    h, t = h_n, t_n
-            tr_loss_sum += torch.Tensor(layers_loss).mean()
-        print(f'epoch: {epoch + 1}/{epochs} - tr_loss: {tr_loss_sum / len(TR_X)}')
-        model.eval()
-        if callback is not None:
-            callback()
+class SigpropTrainer(Trainer):
+    def __init__(self, model: torch.nn.Module, device: str = 'cpu'):
+        super().__init__(model, device)
+        self.initialized = False
+
+    def __initialize__(self, TR_X_MB, TR_Y_MB):
+        if not self.initialized:
+            self.layers = get_leaf_layers(self.model, device=self.device)
+            self.dim_c = self.layers[0].out_channels
+            _, _, self.dim_w, self.dim_h = TR_X_MB.shape
+            self.output_embedding_layer = torch.nn.Linear(TR_Y_MB.shape[1], self.dim_c * self.dim_w * self.dim_h).to(
+                self.device)
+            self.initialized = True
+
+    def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
+        self.__initialize__(TR_X_MB, TR_Y_MB)
+        h, t = TR_X_MB, TR_Y_MB
+        layers_loss = []
+        for i, layer in enumerate(self.layers):
+            if i > 0:
+                cat_ht = torch.cat((h, t)).squeeze()
+                if type(layer) == torch.nn.Linear:
+                    cat_ht = cat_ht.view(cat_ht.shape[0], -1)
+                h_n, t_n = layer(cat_ht).split(h.shape[0])
+            else:
+                h_n = layer(h)
+                t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
+            self.optim.zero_grad()
+            if i == len(self.layers) - 1:
+                loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
+            else:
+                loss = torch.nn.functional.mse_loss(h_n, t_n)
+            try:
+                loss.backward()
+                self.optim.step()
+                h, t = h_n.detach(), t_n.detach()
+                layers_loss.append(loss.item())
+            except:
+                h, t = h_n, t_n
+        return torch.Tensor(layers_loss).mean()
