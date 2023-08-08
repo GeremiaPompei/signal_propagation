@@ -23,8 +23,9 @@ class SigpropTrainer(Trainer):
             self.layers = get_leaf_layers(self.model, device=self.device)
             self.dim_c = self.layers[0].out_channels
             _, _, self.dim_w, self.dim_h = TR_X_MB.shape
-            self.output_embedding_layer = torch.nn.Linear(TR_Y_MB.shape[1], self.dim_c * self.dim_w * self.dim_h).to(
-                self.device)
+            self.output_embedding_layer = torch.nn.Linear(TR_Y_MB.shape[1], self.dim_c * self.dim_w * self.dim_h)\
+                .to(self.device)\
+                .to(self.precision)
             self.initialized = True
 
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
