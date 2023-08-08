@@ -3,7 +3,7 @@ import torch
 from src.trainer.trainer import Trainer
 
 
-def get_leaf_layers(module: torch.nn.Module, device='cpu'):
+def get_leaf_layers(module: torch.nn.Module, device: str = 'cpu'):
     children = list(module.children())
     if not children:
         return [module.to(device)]
@@ -14,8 +14,8 @@ def get_leaf_layers(module: torch.nn.Module, device='cpu'):
 
 
 class SigpropTrainer(Trainer):
-    def __init__(self, model: torch.nn.Module, device: str = 'cpu'):
-        super().__init__(model, device)
+    def __init__(self, model: torch.nn.Module, device: str = 'cpu', precision: torch.dtype = torch.float32):
+        super().__init__(model, device, precision)
         self.initialized = False
 
     def __initialize__(self, TR_X_MB, TR_Y_MB):
