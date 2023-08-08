@@ -13,8 +13,8 @@ def main():
     device = select_device()
 
     TR_SET, TS_SET = mnist_loader(device=device)
-    model = ConvSpikeNN(num_classes=10)
-    trainer = BackpropagationTrainer(model, device=device)
+    model = ConvSpikeNN(num_classes=10, surrogate=True)
+    trainer = SigpropTrainer(model, device=device)
 
     trainer(TR_SET, TS_SET)
 

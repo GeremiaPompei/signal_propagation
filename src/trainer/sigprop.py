@@ -29,14 +29,19 @@ class SigpropTrainer(Trainer):
 
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
         self.__initialize__(TR_X_MB, TR_Y_MB)
-        h, t = TR_X_MB, TR_Y_MB
+        if hasattr(self.model, 'preprocess'):
+            h, t = self.model.preprocess(TR_X_MB), self.model.preprocess(TR_Y_MB)
+        else:
+            h, t = TR_X_MB, TR_Y_MB
         layers_loss = []
         for i, layer in enumerate(self.layers):
+            h.requires_grad, t.requires_grad = True, True
             if i > 0:
-                cat_ht = torch.cat((h, t)).squeeze()
                 if type(layer) == torch.nn.Linear:
-                    cat_ht = cat_ht.view(cat_ht.shape[0], -1)
-                h_n, t_n = layer(cat_ht).split(h.shape[0])
+                    h = h.view(h.shape[0], -1)
+                    t = t.view(t.shape[0], -1)
+                h_n = layer(h)
+                t_n = layer(t)
             else:
                 h_n = layer(h)
                 t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
@@ -50,6 +55,6 @@ class SigpropTrainer(Trainer):
                 self.optim.step()
                 h, t = h_n.detach(), t_n.detach()
                 layers_loss.append(loss.item())
-            except:
+            except Exception as e:
                 h, t = h_n, t_n
         return torch.Tensor(layers_loss).mean()
