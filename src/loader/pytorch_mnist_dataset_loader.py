@@ -1,5 +1,5 @@
 import os
-from typing import Callable
+from typing import Callable, Tuple, Any
 
 import torch
 import torchvision
@@ -12,7 +12,7 @@ def pytorch_mnist_dataset_loader(
         dataset_loader_func: Callable,
         batch_size: int = 128,
         device: str = 'cpu',
-) -> tuple[tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]]:
+) -> tuple:
     """
     Function able to download pytorch MNIST like dataset and return it.
     :param dir_name: Name of directory where save local dataset.
@@ -26,26 +26,16 @@ def pytorch_mnist_dataset_loader(
     """
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
+    TR_MNIST = dataset_loader_func(root=dir_name, train=True, download=True, transform=None)
+    TS_MNIST = dataset_loader_func(root=dir_name, train=False, download=True, transform=None)
+    TR_SET = \
+        TR_MNIST.train_data.type(torch.float).reshape(-1, 1, 28, 28).to(device), \
+        torch.nn.functional.one_hot(TR_MNIST.train_labels).to(device)
+    TS_SET = \
+        TS_MNIST.test_data.type(torch.float).reshape(-1, 1, 28, 28).to(device), \
+        torch.nn.functional.one_hot(TS_MNIST.test_labels).to(device)
 
-    def collate_fn(x):
-        X, Y = default_collate(x)
-        return X.to(device), Y.squeeze().to(device)
+    TR_X, TR_Y = [x.type(torch.float32).split(batch_size, 0) for x in TR_SET]
+    TS_X, TS_Y = [x.type(torch.float32).split(batch_size, 0) for x in TS_SET]
 
-    TR_MNIST, TS_MNIST = [
-        torch.utils.data.DataLoader(
-            dataset_loader_func(
-                root=dir_name,
-                train=train,
-                download=True,
-                transform=transforms.ToTensor(),
-                target_transform=torchvision.transforms.Compose([
-                    lambda x: torch.LongTensor([x]),
-                    lambda x: torch.nn.functional.one_hot(x, 10).to(torch.float),
-                ]),
-            ),
-            shuffle=True,
-            batch_size=batch_size,
-            collate_fn=collate_fn
-        ) for train in [False, True]
-    ]
-    return TR_MNIST, TS_MNIST
+    return tuple(zip(TR_X, TR_Y)), tuple(zip(TS_X, TS_Y))
