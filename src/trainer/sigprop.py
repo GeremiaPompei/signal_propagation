@@ -23,8 +23,8 @@ class SigpropTrainer(Trainer):
             self.layers = get_leaf_layers(self.model, device=self.device)
             self.dim_c = self.layers[0].out_channels
             _, _, self.dim_w, self.dim_h = TR_X_MB.shape
-            self.output_embedding_layer = torch.nn.Linear(TR_Y_MB.shape[1], self.dim_c * self.dim_w * self.dim_h)\
-                .to(self.device)\
+            self.output_embedding_layer = torch.nn.Linear(TR_Y_MB.shape[-1], self.dim_c * self.dim_w * self.dim_h) \
+                .to(self.device) \
                 .to(self.precision)
             self.initialized = True
 
@@ -34,7 +34,6 @@ class SigpropTrainer(Trainer):
             h, t = self.model.preprocess(TR_X_MB), self.model.preprocess(TR_Y_MB)
         else:
             h, t = TR_X_MB, TR_Y_MB
-        layers_loss = []
         for i, layer in enumerate(self.layers):
             h.requires_grad, t.requires_grad = True, True
             if i > 0:
@@ -50,12 +49,8 @@ class SigpropTrainer(Trainer):
             if i == len(self.layers) - 1:
                 loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
             else:
-                loss = torch.nn.functional.mse_loss(h_n, t_n)
-            try:
-                loss.backward()
-                self.optim.step()
-                h, t = h_n.detach(), t_n.detach()
-                layers_loss.append(loss.item())
-            except Exception as e:
-                h, t = h_n, t_n
-        return torch.Tensor(layers_loss).mean()
+                loss = (h_n - t_n).pow(2).mean()
+            loss.backward()
+            self.optim.step()
+            h, t = h_n.detach(), t_n.detach()
+        return loss.item()

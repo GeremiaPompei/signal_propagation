@@ -15,5 +15,5 @@ def mnist_loader(device='cpu'):
     return pytorch_mnist_dataset_loader(
         dir_name='MNIST/',
         dataset_loader_func=datasets.MNIST,
-        device=device
+        device=device,
     )

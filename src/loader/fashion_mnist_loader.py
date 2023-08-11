@@ -15,5 +15,5 @@ def fashion_mnist_loader(device='cpu'):
     return pytorch_mnist_dataset_loader(
         dir_name='Fashion-MNIST/',
         dataset_loader_func=datasets.FashionMNIST,
-        device=device
+        device=device,
     )
