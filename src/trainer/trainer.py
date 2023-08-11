@@ -25,23 +25,22 @@ class Trainer(ABC):
             TS_SET,
             epochs=64,
     ):
-        self.model = self.model.to(self.precision)
-
         log.info(self.__class__.__name__)
         for epoch in range(epochs):
             tr_loss_sum, ts_loss_sum = 0, 0
 
             self.model.train()
             for TR_X_MB, TR_Y_MB in TR_SET:
-                tr_loss_sum += self.train_mb(TR_X_MB.to(self.precision), TR_Y_MB.to(self.precision))
+                tr_loss_sum += self.train_mb(TR_X_MB, TR_Y_MB)
             tr_loss = tr_loss_sum / len(TR_SET)
 
             self.model.eval()
             for X_MB, Y_MB in TS_SET:
-                ts_loss_sum += torch.nn.functional.cross_entropy(
-                    self.model(X_MB.to(self.precision)),
-                    Y_MB.to(self.precision)
-                )
+                with torch.autocast(device_type=self.device, dtype=self.precision):
+                    ts_loss_sum += torch.nn.functional.cross_entropy(
+                        self.model(X_MB),
+                        Y_MB
+                    )
             ts_loss = ts_loss_sum / len(TS_SET)
 
             log.info(f'epoch: {epoch + 1:>4}/{epochs} - tr_loss: {tr_loss:>10.6f} - ts_loss: {ts_loss:>10.6f}')

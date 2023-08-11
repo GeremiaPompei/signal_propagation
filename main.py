@@ -11,11 +11,11 @@ from src.utils.select_device import select_device
 
 
 def main():
-    set_seed(0)
     device = select_device()
 
+    set_seed(0)
     TR_SET, TS_SET = mnist_loader(device=device)
-    model = ConvSpikeNN(num_classes=10, activation_constructor=SurrogateActivation)
+    model = ConvSpikeNN(num_classes=10, activation_constructor=lambda: SurrogateActivation(spike_threshold=0.5))
     trainer = SigpropTrainer(model, device=device, precision=torch.bfloat16)
 
     trainer(TR_SET, TS_SET)

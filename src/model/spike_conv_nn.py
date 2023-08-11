@@ -9,7 +9,7 @@ class SpikeActivation(torch.nn.Module):
         self.spike_threshold = spike_threshold
         self.reset_value = reset_value
 
-    def __call__(self, inputs):
+    def forward(self, inputs):
         inputs = inputs.split(inputs.shape[0] // self.times)
         outputs = []
         V = torch.zeros_like(inputs[0])
@@ -22,8 +22,15 @@ class SpikeActivation(torch.nn.Module):
 
 class SurrogateActivation(torch.nn.Module):
 
-    def __call__(self, inputs):
-        return 1 / torch.pi * torch.arctan(torch.pi * inputs) + 1 / 2
+    def __init__(self, spike_threshold=1, reset_value=0):
+        super().__init__()
+        self.spike_threshold = spike_threshold
+        self.reset_value = reset_value
+
+    def forward(self, inputs):
+        x = 1 / torch.pi * torch.arctan(torch.pi * inputs) + 1 / 2
+        x[x.abs() > self.spike_threshold] = self.reset_value
+        return x
 
 
 class ConvBlock(torch.nn.Module):
