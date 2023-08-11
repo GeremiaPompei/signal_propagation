@@ -14,7 +14,7 @@ def main():
     set_seed(0)
     device = select_device()
 
-    TR_SET, TS_SET = mnist_loader()
+    TR_SET, TS_SET = mnist_loader(device=device)
     model = ConvSpikeNN(num_classes=10, activation_constructor=SurrogateActivation)
     trainer = SigpropTrainer(model, device=device, precision=torch.bfloat16)
 
