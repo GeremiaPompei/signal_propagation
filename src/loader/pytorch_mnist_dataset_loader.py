@@ -11,10 +11,10 @@ class MNISTDataLoader(Dataset):
         X = data.train_data.type(torch.int8)
         perm = torch.randperm(X.shape[0])
         self.X = X[perm].split(batch_size, 0)
-        self.Y = torch.nn.functional.one_hot(
-            data.train_labels.type(torch.LongTensor)[perm], n_classes)\
-            .type(torch.int8)\
+        self.Y = data.train_labels.type(torch.LongTensor)[perm] \
+            .type(torch.int8) \
             .split(batch_size, 0)
+        self.n_classes = n_classes
         self.device = device
 
     def __len__(self):
@@ -22,7 +22,9 @@ class MNISTDataLoader(Dataset):
 
     def __getitem__(self, idx):
         X = self.X[idx].to(torch.float).reshape(-1, 1, 28, 28).to(self.device)
-        Y = self.Y[idx].to(torch.float).to(self.device)
+        Y = torch.nn.functional.one_hot(
+            self.Y[idx].to(torch.float), self.n_classes
+        ).to(self.device)
         return X, Y
 
 
