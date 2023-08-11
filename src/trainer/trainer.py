@@ -1,5 +1,5 @@
 import torch
-import torchvision
+from tqdm.notebook import tqdm
 
 from src.utils import log
 from abc import ABC, abstractmethod
@@ -30,13 +30,13 @@ class Trainer(ABC):
             tr_loss_sum, ts_loss_sum = 0, 0
 
             self.model.train()
-            for TR_X_MB, TR_Y_MB in TR_SET:
+            for TR_X_MB, TR_Y_MB in tqdm(TR_SET, desc=f'{epoch + 1}/{epochs} training'):
                 tr_loss_sum += self.train_mb(TR_X_MB, TR_Y_MB)
             self.lrs.step()
             tr_loss = tr_loss_sum / len(TR_SET)
 
             self.model.eval()
-            for X_MB, Y_MB in TS_SET:
+            for X_MB, Y_MB in tqdm(TS_SET, desc=f'{epoch + 1}/{epochs} evaluation'):
                 with torch.autocast(device_type=self.device, dtype=self.precision):
                     ts_loss_sum += torch.nn.functional.cross_entropy(
                         self.model(X_MB),

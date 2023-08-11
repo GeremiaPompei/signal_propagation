@@ -15,7 +15,7 @@ def main():
 
     set_seed(0)
     TR_SET, TS_SET = mnist_loader(device=device)
-    model = ConvSpikeNN(num_classes=10, surrogate=True)
+    model = ConvSpikeNN(num_classes=10)
     trainer = SigpropTrainer(model, device=device, precision=torch.bfloat16)
 
     trainer(TR_SET, TS_SET)

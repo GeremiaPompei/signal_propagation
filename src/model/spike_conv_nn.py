@@ -1,54 +1,47 @@
 import torch
 
 
-class SpikingActivation(torch.autograd.Function):
+class SpikeActivation(torch.nn.Module):
 
-    @staticmethod
-    def forward(ctx, inputs, times, spike_threshold, reset_value):
-        inputs = inputs.split(inputs.shape[0] // times)
-        outputs = []
-        V = torch.zeros_like(inputs[0])
-        for I in inputs:
-            V = V + I
-            V[V.abs() > spike_threshold] = reset_value
-            outputs.append(V)
-        return torch.vstack(outputs)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        surrogate_res = 1 / (1 + (torch.pi * grad_output).pow(2))
-        return surrogate_res, None, None, None
-
-
-class SpikeLayer(torch.nn.Module):
-
-    def __init__(self, times, spike_threshold, reset_value=0, surrogate=True):
+    def __init__(self, times=4, spike_threshold=1, reset_value=0, surrogate=True):
         super().__init__()
         self.times = times
         self.spike_threshold = spike_threshold
         self.reset_value = reset_value
         self.surrogate = surrogate
 
-    def __call__(self, inputs):
-        if self.surrogate:
-            return SpikingActivation.apply(inputs, self.times, self.spike_threshold, self.reset_value)
-        else:
-            return SpikingActivation.forward(None, inputs.detach(), self.times, self.spike_threshold, self.reset_value)
+    def forward(self, inputs):
+        inputs = inputs.split(inputs.shape[0] // self.times)
+        outputs = []
+        V = inputs[0] if self.surrogate else torch.zeros_like(inputs[0])
+        for I in inputs:
+            if self.surrogate:
+                V = 1 / torch.pi * torch.arctan(torch.pi * V) + 1 / 2
+            else:
+                V = V + I
+            V[V.abs() > self.spike_threshold] = self.reset_value
+            outputs.append(V)
+        return torch.vstack(outputs)
 
 
 class ConvBlock(torch.nn.Module):
 
-    def __init__(self, in_planes, planes, times, spike_threshold, surrogate=True):
+    def __init__(self, in_planes, planes, times, spike_threshold, reset_value, surrogate):
         super().__init__()
         self.conv = torch.nn.Conv2d(in_planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn = torch.nn.BatchNorm2d(planes)
-        self.spike = SpikeLayer(times, spike_threshold, surrogate=surrogate)
+        self.activation = SpikeActivation(
+            times=times,
+            spike_threshold=spike_threshold,
+            reset_value=reset_value,
+            surrogate=surrogate
+        )
         self.pooling = torch.nn.MaxPool2d(2)
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
-        x = self.spike(x)
+        x = self.activation(x)
         x = self.pooling(x)
         return x
 
@@ -76,26 +69,29 @@ class ConvSpikeNN(torch.nn.Module):
             fc_size=128,
             times=4,
             spike_threshold=1,
+            reset_value=0,
             surrogate=True,
     ):
         super().__init__()
-        self.times = times
         self.conv1 = ConvBlock(
             in_channels,
             conv_latent1,
-            times=times,
-            spike_threshold=spike_threshold,
-            surrogate=surrogate,
+            times,
+            spike_threshold,
+            reset_value,
+            surrogate,
         )
         self.conv2 = ConvBlock(
             conv_latent1,
             conv_latent2,
-            times=times,
-            spike_threshold=spike_threshold,
-            surrogate=surrogate,
+            times,
+            spike_threshold,
+            reset_value,
+            surrogate,
         )
         self.fc = torch.nn.Linear(conv_latent2 * 49, fc_size)
-        self.classifier = Classifier(fc_size, times, num_classes)
+        self.times = self.conv1.activation.times if type(self.conv1.activation) == SpikeActivation else 1
+        self.classifier = Classifier(fc_size, self.times, num_classes)
 
     def preprocess(self, x):
         return x.repeat(self.times, *[1 for _ in range(len(x.shape) - 1)])
