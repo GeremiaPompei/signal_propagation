@@ -32,6 +32,7 @@ class Trainer(ABC):
             self.model.train()
             for TR_X_MB, TR_Y_MB in TR_SET:
                 tr_loss_sum += self.train_mb(TR_X_MB, TR_Y_MB)
+            self.lrs.step()
             tr_loss = tr_loss_sum / len(TR_SET)
 
             self.model.eval()

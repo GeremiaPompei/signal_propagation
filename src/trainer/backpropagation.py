@@ -11,5 +11,4 @@ class BackpropagationTrainer(Trainer):
             loss = self.criterion(TR_P_MB, TR_Y_MB)
         loss.backward()
         self.optim.step()
-        self.lrs.step()
         return loss.item()
