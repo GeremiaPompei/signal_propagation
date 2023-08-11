@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 class MNISTDataLoader(Dataset):
 
     def __init__(self, data, batch_size=128, device: str = 'cpu', n_classes: int = 10):
-        X = data.train_data.type(torch.float)
+        X = data.train_data.type(torch.int8)
         perm = torch.randperm(X.shape[0])
         self.X = X[perm].split(batch_size, 0)
         self.Y = torch.nn.functional.one_hot(
@@ -21,7 +21,7 @@ class MNISTDataLoader(Dataset):
         return len(self.X)
 
     def __getitem__(self, idx):
-        X = self.X[idx].reshape(-1, 1, 28, 28).to(self.device)
+        X = self.X[idx].to(torch.float).reshape(-1, 1, 28, 28).to(self.device)
         Y = self.Y[idx].to(torch.float).to(self.device)
         return X, Y
 
