@@ -54,8 +54,7 @@ class SigpropTrainer(Trainer):
                     if type(layer) == torch.nn.Linear:
                         h = h.view(h.shape[0], -1)
                         t = t.view(t.shape[0], -1)
-                    h_n = layer(h)
-                    t_n = layer(t)
+                    h_n, t_n = layer(torch.cat((h, t))).tensor_split(2)
                 else:
                     h_n = layer(h)
                     t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
