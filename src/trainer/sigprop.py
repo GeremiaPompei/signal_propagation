@@ -47,6 +47,7 @@ class SigpropTrainer(Trainer):
         else:
             h, t = TR_X_MB, TR_Y_MB
         for i, layer in enumerate(self.layers):
+            self.optim.zero_grad()
             h.requires_grad, t.requires_grad = True, True
             with torch.autocast(device_type=self.device, dtype=self.precision):
                 if i > 0:
@@ -62,7 +63,6 @@ class SigpropTrainer(Trainer):
                     loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
                 else:
                     loss = self.inner_layer_distance_function(h_n, t_n)
-            self.optim.zero_grad()
             loss.backward()
             self.optim.step()
             h, t = h_n.detach(), t_n.detach()
