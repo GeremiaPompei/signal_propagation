@@ -11,17 +11,19 @@ class SpikeActivation(torch.nn.Module):
         self.surrogate = surrogate
 
     def forward(self, inputs):
-        inputs = inputs.split(inputs.shape[0] // self.times)
-        outputs = []
-        V = inputs[0] if self.surrogate else torch.zeros_like(inputs[0])
-        for I in inputs:
+        bs = inputs.shape[0] // self.times
+        outputs = torch.zeros_like(inputs)
+        V = 0
+        for t in range(self.times):
+            start, end = t * bs, (t + 1) * bs
+            I = inputs[start: end]
             V = V + I
             if self.surrogate:
-                outputs.append(1 / torch.pi * torch.arctan(torch.pi * V) + 1 / 2)
+                outputs[start: end] = 1 / torch.pi * torch.arctan(torch.pi * V) + 1 / 2
             else:
-                outputs.append((V > self.spike_threshold).float())
+                outputs[start: end] = (V > self.spike_threshold).float()
             V[V > self.spike_threshold] = self.reset_value
-        return torch.vstack(outputs)
+        return outputs
 
 
 class ConvBlock(torch.nn.Module):
