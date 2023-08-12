@@ -26,14 +26,14 @@ class SpikeLayer(torch.nn.Module):
 
     def forward(self, inputs):
         bs = inputs.shape[0] // self.times
-        outputs = []
+        output = torch.zeros_like(inputs)
         V = 0
         for t in range(self.times):
             start, end = t * bs, (t + 1) * bs
             I = inputs[start: end]
             V = V + I - self.spike_threshold
-            outputs.append(self.fire(V))
-        return torch.vstack(outputs)
+            output[start: end] = self.fire(V)
+        return output
 
 
 class ConvBlock(torch.nn.Module):
