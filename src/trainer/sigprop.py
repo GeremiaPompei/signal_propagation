@@ -62,7 +62,10 @@ class SigpropTrainer(Trainer):
                     loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
                 else:
                     loss = self.inner_layer_distance_function(h_n, t_n)
-            loss.backward()
-            self.optim.step()
-            h, t = h_n.detach(), t_n.detach()
+            try:
+                loss.backward()
+                self.optim.step()
+                h, t = h_n.detach(), t_n.detach()
+            except:
+                h, t = h_n, t_n
         return loss.item()
