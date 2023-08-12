@@ -12,11 +12,12 @@ from src.utils.select_device import select_device
 
 def main():
     device = select_device()
+    precision = torch.bfloat16
 
     set_seed(0)
-    TR_SET, TS_SET = mnist_loader(device=device)
+    TR_SET, TS_SET = mnist_loader(device=device, precision=precision)
     model = ConvSpikeNN(num_classes=10, surrogate=False)
-    trainer = SigpropTrainer(model, device=device, precision=torch.bfloat16)
+    trainer = SigpropTrainer(model, device=device, precision=precision)
 
     trainer(TR_SET, TS_SET)
 

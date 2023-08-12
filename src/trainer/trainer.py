@@ -7,13 +7,13 @@ from abc import ABC, abstractmethod
 
 class Trainer(ABC):
 
-    def __init__(self, model: torch.nn.Module, device: str = 'cpu', precision: torch.dtype = torch.float32):
+    def __init__(self, model: torch.nn.Module, device: str = 'cpu', precision: torch.dtype = None):
         self.device = device
-        self.model = model.to(self.device)
+        self.precision = precision
+        self.model = model.to(self.precision).to(self.device)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.optim = torch.optim.Adam(self.model.parameters(), lr=5e-4)
         self.lrs = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, T_max=64)
-        self.precision = precision
 
     @abstractmethod
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
@@ -37,11 +37,10 @@ class Trainer(ABC):
 
             self.model.eval()
             for X_MB, Y_MB in tqdm(TS_SET, desc=f'{epoch + 1}/{epochs} evaluation'):
-                with torch.autocast(device_type=self.device, dtype=self.precision):
-                    ts_loss_sum += torch.nn.functional.cross_entropy(
-                        self.model(X_MB),
-                        Y_MB
-                    )
+                ts_loss_sum += torch.nn.functional.cross_entropy(
+                    self.model(X_MB),
+                    Y_MB
+                )
             ts_loss = ts_loss_sum / len(TS_SET)
 
             log.info(f'epoch: {epoch + 1:>4}/{epochs} - tr_loss: {tr_loss:>10.6f} - ts_loss: {ts_loss:>10.6f}')

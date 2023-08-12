@@ -20,7 +20,7 @@ class SigpropTrainer(Trainer):
             self,
             model: torch.nn.Module,
             device: str = 'cpu',
-            precision: torch.dtype = torch.float32,
+            precision: torch.dtype = None,
             inner_layer_distance_function: Callable = None
     ):
         super().__init__(model, device, precision)
@@ -49,19 +49,18 @@ class SigpropTrainer(Trainer):
         for i, layer in enumerate(self.layers):
             self.optim.zero_grad()
             h.requires_grad, t.requires_grad = True, True
-            with torch.autocast(device_type=self.device, dtype=self.precision):
-                if i > 0:
-                    if type(layer) == torch.nn.Linear:
-                        h = h.view(h.shape[0], -1)
-                        t = t.view(t.shape[0], -1)
-                    h_n, t_n = layer(torch.cat((h, t))).tensor_split(2)
-                else:
-                    h_n = layer(h)
-                    t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
-                if i == len(self.layers) - 1:
-                    loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
-                else:
-                    loss = self.inner_layer_distance_function(h_n, t_n)
+            if i > 0:
+                if type(layer) == torch.nn.Linear:
+                    h = h.view(h.shape[0], -1)
+                    t = t.view(t.shape[0], -1)
+                h_n, t_n = layer(torch.cat((h, t))).tensor_split(2)
+            else:
+                h_n = layer(h)
+                t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
+            if i == len(self.layers) - 1:
+                loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
+            else:
+                loss = self.inner_layer_distance_function(h_n, t_n)
             try:
                 loss.backward()
                 self.optim.step()

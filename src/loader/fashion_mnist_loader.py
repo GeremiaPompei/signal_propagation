@@ -1,9 +1,10 @@
+import torch
 from torchvision import datasets
 
 from src.loader.pytorch_mnist_dataset_loader import pytorch_mnist_dataset_loader
 
 
-def fashion_mnist_loader(device='cpu'):
+def fashion_mnist_loader(device='cpu', precision: torch.dtype = torch.float32):
     """
     Function able to download Fashion-MNIST dataset and return it.
     :param device: Accelerator where allocate the dataset.
@@ -16,4 +17,5 @@ def fashion_mnist_loader(device='cpu'):
         dir_name='Fashion-MNIST/',
         dataset_loader_func=datasets.FashionMNIST,
         device=device,
+        precision=precision,
     )
