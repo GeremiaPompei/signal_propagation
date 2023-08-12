@@ -15,12 +15,12 @@ class SpikeActivation(torch.nn.Module):
         outputs = []
         V = inputs[0] if self.surrogate else torch.zeros_like(inputs[0])
         for I in inputs:
+            V = V + I
             if self.surrogate:
-                V = 1 / torch.pi * torch.arctan(torch.pi * V) + 1 / 2
+                outputs.append(1 / torch.pi * torch.arctan(torch.pi * V) + 1 / 2)
             else:
-                V = V + I
-            V[V.abs() > self.spike_threshold] = self.reset_value
-            outputs.append(V)
+                outputs.append((V > self.spike_threshold).float())
+            V[V > self.spike_threshold] = self.reset_value
         return torch.vstack(outputs)
 
 
