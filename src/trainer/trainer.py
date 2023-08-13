@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from src.utils import log
 from abc import ABC, abstractmethod
+import psutil
 
 
 class Trainer(ABC):
@@ -34,12 +35,17 @@ class Trainer(ABC):
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
         pass
 
-    def __write_record_in_file(self, tr_perf: float, ts_perf: float, mean_tr_time: float):
+    def __write_record_in_file(self, tr_perf: float, ts_perf: float, mean_tr_time: float, mean_tr_memory_usage: float):
         results = {}
         if os.path.exists(self.filename):
             with open(self.filename, 'r') as fr:
                 results = json.load(fr)
-        results[self.__class__.__name__] = dict(tr_perf=tr_perf, ts_perf=ts_perf, mean_tr_time=mean_tr_time)
+        results[self.__class__.__name__] = dict(
+            tr_perf=tr_perf,
+            ts_perf=ts_perf,
+            mean_tr_time=mean_tr_time,
+            mean_tr_memory_usage=mean_tr_memory_usage
+        )
         with open(self.filename, 'w') as fw:
             json.dump(results, fw)
 
@@ -52,6 +58,7 @@ class Trainer(ABC):
         log.info(self.__class__.__name__)
         tr_loss, ts_loss = -1, -1
         tr_times = []
+        tr_memory = []
 
         for epoch in range(epochs):
             tr_loss_sum, ts_loss_sum = 0, 0
@@ -62,6 +69,7 @@ class Trainer(ABC):
                 tr_loss_sum += self.train_mb(TR_X_MB, TR_Y_MB)
             end_time = time.time()
             tr_times.append(end_time - start_time)
+            tr_memory.append(psutil.virtual_memory().used if self.device == 'cpu' else torch.cuda.memory_allocated())
             self.lrs.step()
             tr_loss = tr_loss_sum / len(TR_SET)
 
@@ -76,5 +84,10 @@ class Trainer(ABC):
 
             log.info(f'epoch: {epoch + 1:>4}/{epochs} - tr_loss: {tr_loss:>10.6f} - ts_loss: {ts_loss:>10.6f}')
 
-        self.__write_record_in_file(tr_loss, ts_loss, sum(tr_times) / len(tr_times))
+        self.__write_record_in_file(
+            tr_loss,
+            ts_loss,
+            sum(tr_times) / len(tr_times),
+            sum(tr_memory) / len(tr_memory),
+        )
         return self.model
