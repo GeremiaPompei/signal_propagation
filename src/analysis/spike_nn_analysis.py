@@ -1,7 +1,5 @@
-from src.analysis.analysis import Analysis
-
 import torch
-
+from src.analysis.analysis import Analysis
 from src.loader.fashion_mnist_loader import fashion_mnist_loader
 from src.loader.mnist_loader import mnist_loader
 from src.model.spike_conv_nn import ConvSpikeNN
@@ -21,10 +19,9 @@ class SpikeNNAnalysis(Analysis):
         precision = torch.bfloat16 if device == 'cpu' else torch.float16
 
         for data_fn, data_loader in [
-            ('mnist.json', mnist_loader),
-            ('fashion_mnist.json', fashion_mnist_loader)
+            ('spikenn_mnist.json', mnist_loader),
+            ('spikenn_fashion_mnist.json', fashion_mnist_loader)
         ]:
-            TR_SET, TS_SET = data_loader(device=device)
             for id_name, trainer_constructor, surrogate, spike_threshold in [
                 ('Shallow', ShallowTrainer, True, 1),
                 ('BP Surrogate', BackpropagationTrainer, True, 1),
@@ -32,6 +29,7 @@ class SpikeNNAnalysis(Analysis):
                 ('SP Voltage', SigpropTrainer, False, 0.5),
             ]:
                 set_seed(0)
+                TR_SET, TS_SET = data_loader(device=device)
                 model = ConvSpikeNN(num_classes=10, surrogate=surrogate, spike_threshold=spike_threshold)
                 trainer = trainer_constructor(model, id_name, device=device, precision=precision, filename=data_fn)
                 trainer(TR_SET, TS_SET)

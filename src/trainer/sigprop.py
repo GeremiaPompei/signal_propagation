@@ -24,8 +24,9 @@ class SigpropTrainer(Trainer):
             precision: torch.dtype = None,
             inner_layer_distance_function: Callable = None,
             filename: str = 'results.json',
+            evaluate_accuracy: bool = False,
     ):
-        super().__init__(model, id_name, device, precision, filename)
+        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy)
         self.layers = None
         self.output_embedding_layer = None
         if inner_layer_distance_function is None:
