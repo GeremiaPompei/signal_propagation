@@ -73,7 +73,7 @@ class Trainer(ABC):
             tr_memory.append(
                 psutil.virtual_memory().used
                 if self.device == 'cpu'
-                else torch.cuda.max_memory_allocated()
+                else torch.cuda.memory_allocated()
             )
             self.lrs.step()
             tr_loss = tr_loss_sum / len(TR_SET)
