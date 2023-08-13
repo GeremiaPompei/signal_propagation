@@ -69,7 +69,11 @@ class Trainer(ABC):
                 tr_loss_sum += self.train_mb(TR_X_MB, TR_Y_MB)
             end_time = time.time()
             tr_times.append(end_time - start_time)
-            tr_memory.append(psutil.virtual_memory().used if self.device == 'cpu' else torch.cuda.memory_allocated())
+            tr_memory.append(
+                psutil.virtual_memory().used
+                if self.device == 'cpu'
+                else torch.cuda.max_memory_allocated()
+            )
             self.lrs.step()
             tr_loss = tr_loss_sum / len(TR_SET)
 
