@@ -26,18 +26,23 @@ class VGGAnalysis(Analysis):
             for id_name, trainer_constructor in [
                 ('Shallow', ShallowTrainer),
                 ('BP', BackpropagationTrainer),
-                ('SP', SigpropTrainer),
+                ('SP Shallow', SigpropTrainer),
+                ('SP Deep', SigpropTrainer),
             ]:
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)
                 model = vgg8b(num_classes=10)
+                additional_fields = {}
+                if 'SP Deep' == id_name:
+                    additional_fields['deep_sp'] = True
                 trainer: Trainer = trainer_constructor(
                     model,
                     id_name,
                     device=device,
                     precision=precision,
                     filename=data_fn,
-                    evaluate_accuracy=True
+                    evaluate_accuracy=True,
+                    **additional_fields,
                 )
                 trainer(TR_SET, TS_SET, epochs=10)
 

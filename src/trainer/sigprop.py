@@ -15,6 +15,14 @@ def get_leaf_layers(module: torch.nn.Module):
     return leaves
 
 
+def find_first_deep_layer(module: torch.nn.Module):
+    children = list(module.children())
+    if not children:
+        return module
+    for layer in children:
+        return find_first_deep_layer(layer)
+
+
 class SigpropTrainer(Trainer):
     def __init__(
             self,
@@ -25,18 +33,16 @@ class SigpropTrainer(Trainer):
             inner_layer_distance_function: Callable = None,
             filename: str = 'results.json',
             evaluate_accuracy: bool = False,
+            deep_sp: bool = False,
     ):
         super().__init__(model, id_name, device, precision, filename, evaluate_accuracy)
         self.layers = None
         self.output_embedding_layer = None
+        self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))
         if inner_layer_distance_function is None:
             self.inner_layer_distance_function = lambda h_n, t_n: (h_n - t_n).pow(2).mean()
         else:
             self.inner_layer_distance_function = inner_layer_distance_function
-
-    def __initialize__(self):
-        if self.layers is None:
-            self.layers = list(self.model.children())
 
     def __initialize_output_embedding_layer(self, h_n, input_features):
         _, self.dim_c, self.dim_w, self.dim_h = h_n.shape
@@ -45,7 +51,6 @@ class SigpropTrainer(Trainer):
             .to(self.precision)
 
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
-        self.__initialize__()
         if hasattr(self.model, 'preprocess'):
             h, t = self.model.preprocess(TR_X_MB), self.model.preprocess(TR_Y_MB)
         else:
@@ -55,7 +60,8 @@ class SigpropTrainer(Trainer):
             h.requires_grad, t.requires_grad = True, True
             with torch.autocast(device_type=self.device, dtype=self.precision):
                 if i > 0:
-                    if type(layer) == torch.nn.Linear:
+                    first_deep_layer = find_first_deep_layer(layer)
+                    if type(first_deep_layer) == torch.nn.Linear:
                         h = h.view(h.shape[0], -1)
                         t = t.view(t.shape[0], -1)
                     h_n, t_n = layer(torch.cat((h, t))).tensor_split(2)
