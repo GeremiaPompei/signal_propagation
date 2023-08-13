@@ -1,0 +1,34 @@
+{
+  "Shallow": {
+    "tr_perf": 2.34182900863924,
+    "ts_perf": 2.3001380630686312,
+    "mean_tr_time": 7.125306344032287,
+    "mean_tr_memory_usage": 111712256.0,
+    "tr_accuracy": 0.12968333333333334,
+    "ts_accuracy": 0.132
+  },
+  "BP": {
+    "tr_perf": 0.02148264734896579,
+    "ts_perf": 0.08527724749019629,
+    "mean_tr_time": 21.634188628196718,
+    "mean_tr_memory_usage": 430715904.0,
+    "tr_accuracy": 0.9918666666666667,
+    "ts_accuracy": 0.9795
+  },
+  "SP Shallow": {
+    "tr_perf": 2.3013314448439997,
+    "ts_perf": 2.3017446783524527,
+    "mean_tr_time": 22.144673562049867,
+    "mean_tr_memory_usage": 404946944.0,
+    "tr_accuracy": 0.11236666666666667,
+    "ts_accuracy": 0.1135
+  },
+  "SP Deep": {
+    "tr_perf": 2.3011468864961473,
+    "ts_perf": 2.3011090242410006,
+    "mean_tr_time": 63.308282709121706,
+    "mean_tr_memory_usage": 333506560.0,
+    "tr_accuracy": 0.11236666666666667,
+    "ts_accuracy": 0.1135
+  }
+}
