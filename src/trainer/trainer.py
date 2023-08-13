@@ -14,12 +14,13 @@ class Trainer(ABC):
 
     def __init__(
             self,
-            model:
-            torch.nn.Module,
+            model: torch.nn.Module,
+            id_name: str,
             device: str = 'cpu',
             precision: torch.dtype = None,
             filename: str = 'results.json',
     ):
+        self.id_name = id_name
         self.device = device
         self.model = model.to(self.device)
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -40,7 +41,7 @@ class Trainer(ABC):
         if os.path.exists(self.filename):
             with open(self.filename, 'r') as fr:
                 results = json.load(fr)
-        results[self.__class__.__name__] = dict(
+        results[self.id_name] = dict(
             tr_perf=tr_perf,
             ts_perf=ts_perf,
             mean_tr_time=mean_tr_time,

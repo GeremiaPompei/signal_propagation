@@ -25,15 +25,15 @@ class SpikeNNAnalysis(Analysis):
             ('fashion_mnist.json', fashion_mnist_loader)
         ]:
             TR_SET, TS_SET = data_loader(device=device)
-            for trainer_constructor, surrogate, spike_threshold in [
-                (ShallowTrainer, True, 1),
-                (BackpropagationTrainer, True, 1),
-                (SigpropTrainer, True, 0.5),
-                (SigpropTrainer, False, 0.5),
+            for id_name, trainer_constructor, surrogate, spike_threshold in [
+                ('Shallow', ShallowTrainer, True, 1),
+                ('BP Surrogate', BackpropagationTrainer, True, 1),
+                ('SP Surrogate', SigpropTrainer, True, 0.5),
+                ('SP Voltage', SigpropTrainer, False, 0.5),
             ]:
                 set_seed(0)
                 model = ConvSpikeNN(num_classes=10, surrogate=surrogate, spike_threshold=spike_threshold)
-                trainer = trainer_constructor(model, device=device, precision=precision, filename=data_fn)
+                trainer = trainer_constructor(model, id_name, device=device, precision=precision, filename=data_fn)
                 trainer(TR_SET, TS_SET)
 
 

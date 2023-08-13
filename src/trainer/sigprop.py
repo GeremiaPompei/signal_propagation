@@ -19,12 +19,13 @@ class SigpropTrainer(Trainer):
     def __init__(
             self,
             model: torch.nn.Module,
+            id_name: str,
             device: str = 'cpu',
             precision: torch.dtype = None,
             inner_layer_distance_function: Callable = None,
             filename: str = 'results.json',
     ):
-        super().__init__(model, device, precision, filename)
+        super().__init__(model, id_name, device, precision, filename)
         self.layers = None
         self.output_embedding_layer = None
         if inner_layer_distance_function is None:
