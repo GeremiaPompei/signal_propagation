@@ -6,6 +6,7 @@ from src.model.vgg import vgg8b
 from src.trainer.backpropagation import BackpropagationTrainer
 from src.trainer.shallow import ShallowTrainer
 from src.trainer.sigprop import SigpropTrainer
+from src.trainer.trainer import Trainer
 from src.utils import set_seed
 from src.utils.select_device import select_device
 
@@ -30,7 +31,7 @@ class VGGAnalysis(Analysis):
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)
                 model = vgg8b(num_classes=10)
-                trainer = trainer_constructor(
+                trainer: Trainer = trainer_constructor(
                     model,
                     id_name,
                     device=device,
@@ -38,7 +39,7 @@ class VGGAnalysis(Analysis):
                     filename=data_fn,
                     evaluate_accuracy=True
                 )
-                trainer(TR_SET, TS_SET)
+                trainer(TR_SET, TS_SET, epochs=10)
 
 
 VGGAnalysis()

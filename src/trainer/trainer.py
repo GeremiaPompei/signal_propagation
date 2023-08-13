@@ -68,7 +68,7 @@ class Trainer(ABC):
             self,
             TR_SET,
             TS_SET,
-            epochs=64,
+            epochs: int = 64,
     ):
         log.info(self.__class__.__name__)
         tr_loss, ts_loss = -1, -1
