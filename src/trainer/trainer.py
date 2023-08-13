@@ -71,7 +71,7 @@ class Trainer(ABC):
                     ts_loss_sum += torch.nn.functional.cross_entropy(
                         self.model(X_MB),
                         Y_MB
-                    )
+                    ).item()
             ts_loss = ts_loss_sum / len(TS_SET)
 
             log.info(f'epoch: {epoch + 1:>4}/{epochs} - tr_loss: {tr_loss:>10.6f} - ts_loss: {ts_loss:>10.6f}')
