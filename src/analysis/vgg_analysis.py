@@ -8,6 +8,7 @@ from src.trainer.shallow import ShallowTrainer
 from src.trainer.sigprop import SigpropTrainer
 from src.trainer.trainer import Trainer
 from src.utils import set_seed
+from src.utils.layer_error_functions import MSELEF, DotProdLEF
 from src.utils.select_device import select_device
 
 
@@ -23,18 +24,19 @@ class VGGAnalysis(Analysis):
             ('vgg_mnist.json', mnist_loader),
             ('vgg_fashion_mnist.json', fashion_mnist_loader)
         ]:
-            for id_name, trainer_constructor in [
-                ('Shallow', ShallowTrainer),
-                ('BP', BackpropagationTrainer),
-                ('SP Shallow', SigpropTrainer),
-                ('SP Deep', SigpropTrainer),
+            for id_name, trainer_constructor, lef in [
+                ('Shallow', ShallowTrainer, None),
+                ('BP', BackpropagationTrainer, None),
+                ('SP MSE', SigpropTrainer, MSELEF()),
+                ('SP DotProd', SigpropTrainer, DotProdLEF()),
             ]:
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)
                 model = vgg8b(num_classes=10)
                 additional_fields = {}
-                if 'SP Deep' == id_name:
+                if 'SP' in id_name:
                     additional_fields['deep_sp'] = True
+                    additional_fields['lef'] = lef
                 trainer: Trainer = trainer_constructor(
                     model,
                     id_name,

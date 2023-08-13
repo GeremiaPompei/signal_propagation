@@ -3,6 +3,7 @@ from typing import Callable
 import torch
 
 from src.trainer.trainer import Trainer
+from src.utils.layer_error_functions import LayerErrorFunction, MSELEF
 
 
 def get_leaf_layers(module: torch.nn.Module):
@@ -30,7 +31,7 @@ class SigpropTrainer(Trainer):
             id_name: str,
             device: str = 'cpu',
             precision: torch.dtype = None,
-            inner_layer_distance_function: Callable = None,
+            lef: LayerErrorFunction = None,
             filename: str = 'results.json',
             evaluate_accuracy: bool = False,
             deep_sp: bool = False,
@@ -39,10 +40,10 @@ class SigpropTrainer(Trainer):
         self.layers = None
         self.output_embedding_layer = None
         self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))
-        if inner_layer_distance_function is None:
-            self.inner_layer_distance_function = lambda h_n, t_n: (h_n - t_n).pow(2).mean()
+        if lef is None:
+            self.lef = MSELEF()
         else:
-            self.inner_layer_distance_function = inner_layer_distance_function
+            self.lef = lef
 
     def __initialize_output_embedding_layer(self, h_n, input_features):
         _, self.dim_c, self.dim_w, self.dim_h = h_n.shape
@@ -73,7 +74,7 @@ class SigpropTrainer(Trainer):
                 if i == len(self.layers) - 1:
                     loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
                 else:
-                    loss = self.inner_layer_distance_function(h_n, t_n)
+                    loss = self.lef(h_n, t_n)
             try:
                 loss.backward()
                 self.optim.step()
