@@ -1,0 +1,26 @@
+{
+  "Shallow": {
+    "tr_perf": 2.5088779997469772,
+    "ts_perf": 2.5145265120494216,
+    "mean_tr_time": 1.5921282842755318,
+    "mean_tr_memory_usage": 18441440.0
+  },
+  "BP Surrogate": {
+    "tr_perf": 2.302586198615621,
+    "ts_perf": 2.3025860695899287,
+    "mean_tr_time": 6.618115320801735,
+    "mean_tr_memory_usage": 21565664.0
+  },
+  "SP Surrogate": {
+    "tr_perf": 2.3023703342307607,
+    "ts_perf": 2.3025859307639207,
+    "mean_tr_time": 10.055232040584087,
+    "mean_tr_memory_usage": 20703456.0
+  },
+  "SP Voltage": {
+    "tr_perf": 2.3024529399139793,
+    "ts_perf": 2.3023986665508414,
+    "mean_tr_time": 2.844764366745949,
+    "mean_tr_memory_usage": 20638944.0
+  }
+}
