@@ -35,8 +35,9 @@ class SigpropTrainer(Trainer):
             filename: str = 'results.json',
             evaluate_accuracy: bool = False,
             deep_sp: bool = False,
+            lr: float = 5e-4,
     ):
-        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy)
+        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy, lr)
         self.layers = None
         self.output_embedding_layer = None
         self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))

@@ -12,7 +12,8 @@ class ShallowTrainer(BackpropagationTrainer):
             precision: torch.dtype = None,
             filename: str = 'results.json',
             evaluate_accuracy: bool = None,
+            lr: float = 5e-4,
     ):
-        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy)
+        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy, lr)
         for param in list(model.parameters())[:-1]:
             param.requires_grad = False
