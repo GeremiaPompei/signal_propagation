@@ -24,10 +24,11 @@ class VGGAnalysis(Analysis):
             ('vgg_mnist.json', mnist_loader),
             ('vgg_fashion_mnist.json', fashion_mnist_loader)
         ]:
-            for id_name, trainer_constructor in [
-                ('Shallow', ShallowTrainer),
-                ('BP', BackpropagationTrainer),
-                ('SP', SigpropTrainer),
+            for id_name, trainer_constructor, lef in [
+                ('SP DotProd', SigpropTrainer, DotProdLEF()),
+                ('SP MSE', SigpropTrainer, MSELEF()),
+                ('Shallow', ShallowTrainer, None),
+                ('BP', BackpropagationTrainer, None),
             ]:
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)
@@ -35,16 +36,16 @@ class VGGAnalysis(Analysis):
                 additional_fields = {}
                 if 'SP' in id_name:
                     additional_fields['deep_sp'] = True
+                    additional_fields['lef'] = lef
                 trainer: Trainer = trainer_constructor(
                     model,
                     id_name,
                     device=device,
                     precision=precision,
                     filename=data_fn,
-                    evaluate_accuracy=True,
                     **additional_fields,
                 )
-                trainer(TR_SET, TS_SET, epochs=10)
+                trainer(TR_SET, TS_SET)
 
 
 VGGAnalysis()

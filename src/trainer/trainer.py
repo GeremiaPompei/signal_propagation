@@ -19,7 +19,6 @@ class Trainer(ABC):
             device: str = 'cpu',
             precision: torch.dtype = None,
             filename: str = 'results.json',
-            evaluate_accuracy: bool = False,
             lr: float = 5e-4,
     ):
         self.id_name = id_name
@@ -29,7 +28,6 @@ class Trainer(ABC):
         self.optim = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.lrs = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, T_max=64)
         self.precision = precision
-        self.evaluate_accuracy = evaluate_accuracy
         self.base_dir = 'results'
         if not os.path.exists(self.base_dir):
             os.mkdir(self.base_dir)
@@ -106,22 +104,22 @@ class Trainer(ABC):
             log.info(f'epoch: {epoch + 1:>4}/{epochs} - tr_loss: {tr_loss:>10.6f} - ts_loss: {ts_loss:>10.6f}')
 
             tr_accuracy, ts_accuracy = None, None
-            if self.evaluate_accuracy:
-                for dataset_label, dataset in [
-                    ('tr_set', TR_SET),
-                    ('ts_set', TS_SET)
-                ]:
-                    acc_counter, acc_len = 0, 0
-                    for X_MB, Y_MB in tqdm(dataset, desc=f'compute accuracy of {dataset_label}'):
-                        counter = (self.model(X_MB).argmax(-1) - Y_MB.argmax(-1) == 0).float()
-                        acc_counter += sum(counter).item()
-                        acc_len += len(counter)
-                    if dataset_label == 'tr_set':
-                        tr_accuracy = acc_counter / acc_len
-                    elif dataset_label == 'ts_set':
-                        ts_accuracy = acc_counter / acc_len
 
-                log.info(f'tr_accuracy: {tr_accuracy:>10.6f} - ts_accuracy: {ts_accuracy:>10.6f}')
+            for dataset_label, dataset in [
+                ('tr_set', TR_SET),
+                ('ts_set', TS_SET)
+            ]:
+                acc_counter, acc_len = 0, 0
+                for X_MB, Y_MB in tqdm(dataset, desc=f'compute accuracy of {dataset_label}'):
+                    counter = (self.model(X_MB).argmax(-1) - Y_MB.argmax(-1) == 0).float()
+                    acc_counter += sum(counter).item()
+                    acc_len += len(counter)
+                if dataset_label == 'tr_set':
+                    tr_accuracy = acc_counter / acc_len
+                elif dataset_label == 'ts_set':
+                    ts_accuracy = acc_counter / acc_len
+
+            log.info(f'tr_accuracy: {tr_accuracy:>10.6f} - ts_accuracy: {ts_accuracy:>10.6f}')
 
         self.__write_record_in_file(
             tr_loss,
