@@ -3,7 +3,7 @@ from typing import Callable
 import torch
 
 from src.trainer.trainer import Trainer
-from src.utils.layer_error_functions import LayerErrorFunction, MSELEF
+from src.utils.layer_error_functions import LayerErrorFunction, L2LEF
 
 
 def get_leaf_layers(module: torch.nn.Module):
@@ -37,7 +37,7 @@ class SigpropTrainer(Trainer):
         self.output_embedding_layer = None
         self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))
         if lef is None:
-            self.lef = MSELEF()
+            self.lef = L2LEF()
         else:
             self.lef = lef
 
