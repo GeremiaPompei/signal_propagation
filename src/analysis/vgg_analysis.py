@@ -38,8 +38,8 @@ class VGGAnalysis(Analysis):
                     additional_fields['deep_sp'] = True
                     additional_fields['lef'] = lef
                 trainer: Trainer = trainer_constructor(
-                    model,
-                    id_name,
+                    model=model,
+                    id_name=id_name,
                     device=device,
                     precision=precision,
                     filename=data_fn,

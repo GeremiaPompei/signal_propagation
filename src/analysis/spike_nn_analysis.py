@@ -31,7 +31,13 @@ class SpikeNNAnalysis(Analysis):
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)
                 model = ConvSpikeNN(num_classes=10, surrogate=surrogate, spike_threshold=spike_threshold)
-                trainer = trainer_constructor(model, id_name, device=device, precision=precision, filename=data_fn)
+                trainer = trainer_constructor(
+                    model=model,
+                    id_name=id_name,
+                    device=device,
+                    precision=precision,
+                    filename=data_fn
+                )
                 trainer(TR_SET, TS_SET)
 
 

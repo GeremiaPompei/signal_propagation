@@ -4,16 +4,7 @@ from src.trainer.backpropagation import BackpropagationTrainer
 
 
 class ShallowTrainer(BackpropagationTrainer):
-    def __init__(
-            self,
-            model: torch.nn.Module,
-            id_name: str,
-            device: str = 'cpu',
-            precision: torch.dtype = None,
-            filename: str = 'results.json',
-            evaluate_accuracy: bool = None,
-            lr: float = 5e-4,
-    ):
-        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy, lr)
-        for param in list(model.parameters())[:-1]:
+    def __init__(self, *args, **kargs):
+        super().__init__(*args, **kargs)
+        for param in list(self.model.parameters())[:-1]:
             param.requires_grad = False

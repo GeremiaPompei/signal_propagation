@@ -27,17 +27,12 @@ def find_first_deep_layer(module: torch.nn.Module):
 class SigpropTrainer(Trainer):
     def __init__(
             self,
-            model: torch.nn.Module,
-            id_name: str,
-            device: str = 'cpu',
-            precision: torch.dtype = None,
-            lef: LayerErrorFunction = None,
-            filename: str = 'results.json',
-            evaluate_accuracy: bool = False,
+            *args,
             deep_sp: bool = False,
-            lr: float = 5e-4,
+            lef: LayerErrorFunction = None,
+            **kargs,
     ):
-        super().__init__(model, id_name, device, precision, filename, evaluate_accuracy, lr)
+        super().__init__(*args, **kargs)
         self.layers = None
         self.output_embedding_layer = None
         self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))
