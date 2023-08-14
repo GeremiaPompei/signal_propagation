@@ -1,26 +1,34 @@
 {
   "Shallow": {
-    "tr_perf": 2.5088779997469772,
-    "ts_perf": 2.5145265120494216,
-    "mean_tr_time": 1.5921282842755318,
-    "mean_tr_memory_usage": 18441440.0
+    "tr_perf": 2.4576447523092924,
+    "ts_perf": 2.4523701034014738,
+    "mean_tr_time": 0.2689119353890419,
+    "mean_tr_memory_usage": 18137088.0,
+    "tr_accuracy": 0.12523333333333334,
+    "ts_accuracy": 0.1204
   },
   "BP Surrogate": {
-    "tr_perf": 2.302586198615621,
-    "ts_perf": 2.3025860695899287,
-    "mean_tr_time": 6.618115320801735,
-    "mean_tr_memory_usage": 21565664.0
+    "tr_perf": 0.4734036747979212,
+    "ts_perf": 0.46905771822114534,
+    "mean_tr_time": 1.1038372665643692,
+    "mean_tr_memory_usage": 21261312.0,
+    "tr_accuracy": 0.7141833333333333,
+    "ts_accuracy": 0.8323
   },
   "SP Surrogate": {
-    "tr_perf": 2.3023703342307607,
-    "ts_perf": 2.3025859307639207,
-    "mean_tr_time": 10.055232040584087,
-    "mean_tr_memory_usage": 20703456.0
+    "tr_perf": 2.3025367320338384,
+    "ts_perf": 2.302536683746531,
+    "mean_tr_time": 1.652349092066288,
+    "mean_tr_memory_usage": 20399104.0,
+    "tr_accuracy": 0.1,
+    "ts_accuracy": 0.1
   },
   "SP Voltage": {
-    "tr_perf": 2.3024529399139793,
-    "ts_perf": 2.3023986665508414,
-    "mean_tr_time": 2.844764366745949,
-    "mean_tr_memory_usage": 20638944.0
+    "tr_perf": 2.302551939517637,
+    "ts_perf": 2.302540794203553,
+    "mean_tr_time": 0.46817853674292564,
+    "mean_tr_memory_usage": 20334592.0,
+    "tr_accuracy": 0.1,
+    "ts_accuracy": 0.1
   }
 }
