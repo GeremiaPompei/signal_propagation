@@ -24,9 +24,9 @@ class VGGAnalysis(Analysis):
             ('vgg_fashion_mnist.json', fashion_mnist_loader)
         ]:
             for id_name, trainer_constructor in [
-                ('Shallow', ShallowTrainer),
-                ('BP', BackpropagationTrainer),
                 ('SP', SigpropTrainer),
+                ('BP', BackpropagationTrainer),
+                ('Shallow', ShallowTrainer),
             ]:
                 set_seed(0)
                 TR_SET, TS_SET = data_loader(device=device)

@@ -3,6 +3,7 @@ from typing import Callable
 import torch
 
 from src.trainer.trainer import Trainer
+from src.utils.logging import log
 from src.utils.layer_error_functions import LayerErrorFunction, L2LEF
 
 
@@ -35,7 +36,8 @@ class SigpropTrainer(Trainer):
         super().__init__(*args, **kargs)
         self.layers = None
         self.output_embedding_layer = None
-        self.layers = list(self.model.children() if not deep_sp else get_leaf_layers(self.model))
+        self.layers = list(self.model.children()
+                           if not deep_sp else get_leaf_layers(self.model))
         if lef is None:
             self.lef = L2LEF()
         else:
@@ -49,7 +51,8 @@ class SigpropTrainer(Trainer):
 
     def train_mb(self, TR_X_MB: torch.Tensor, TR_Y_MB: torch.Tensor):
         if hasattr(self.model, 'preprocess'):
-            h, t = self.model.preprocess(TR_X_MB), self.model.preprocess(TR_Y_MB)
+            h, t = self.model.preprocess(
+                TR_X_MB), self.model.preprocess(TR_Y_MB)
         else:
             h, t = TR_X_MB, TR_Y_MB
         for i, layer in enumerate(self.layers):
@@ -65,8 +68,10 @@ class SigpropTrainer(Trainer):
                 else:
                     h_n = layer(h)
                     if self.output_embedding_layer is None:
-                        self.__initialize_output_embedding_layer(h_n, TR_Y_MB.shape[-1])
-                    t_n = self.output_embedding_layer(t).view(-1, self.dim_c, self.dim_w, self.dim_h)
+                        self.__initialize_output_embedding_layer(
+                            h_n, TR_Y_MB.shape[-1])
+                    t_n = self.output_embedding_layer(
+                        t).view(-1, self.dim_c, self.dim_w, self.dim_h)
                 if i == len(self.layers) - 1:
                     loss = torch.nn.functional.cross_entropy(h_n, TR_Y_MB)
                 else:
@@ -74,7 +79,13 @@ class SigpropTrainer(Trainer):
             try:
                 loss.backward()
                 self.optim.step()
+                with torch.no_grad():
+                    if i > 0:
+                        h_n, t_n = layer(torch.cat((h, t))).tensor_split(2)
+                    else:
+                        h_n = layer(h)
                 h, t = h_n.detach(), t_n.detach()
             except:
+                log.error(f"Skipping layer {i}: {layer}")
                 h, t = h_n, t_n
         return loss.item()

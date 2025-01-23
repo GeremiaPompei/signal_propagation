@@ -1,6 +1,6 @@
 **.DS_Store
 MNIST
 Fashion-MNIST
-.venv
+venv
 .idea
 **__pycache__

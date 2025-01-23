@@ -5,7 +5,12 @@ from src.analysis import analysis_dict
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('analysis', help=f'type of analysis to use: {list(analysis_dict.keys())}')
+    parser.add_argument(
+        '--analysis', 
+        help=f'type of analysis to use: {list(analysis_dict.keys())}', 
+        required=False, 
+        default='VGG'
+    )
     args = parser.parse_args()
     analysis_dict[args.analysis]()
 
