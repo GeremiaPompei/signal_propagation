@@ -22,6 +22,7 @@ class DotProdLEF(LayerErrorFunction):
         den = h.squeeze().norm(dim=-1) * t.squeeze().norm(dim=-1)
         prod = num / den
         mean_res = prod.abs().mean()
-        res = - mean_res.log()
-        res = torch.clip(res, -100, 0)
+        res_before_clip = - mean_res.log()
+        res = torch.clip(res_before_clip, 0, 100)
+        print(res_before_clip, res)
         return res
