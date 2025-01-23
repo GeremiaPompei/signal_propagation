@@ -4,7 +4,7 @@ import torch
 
 from src.trainer.trainer import Trainer
 from src.utils.logging import log
-from src.utils.layer_error_functions import LayerErrorFunction, L2LEF
+from src.utils.layer_error_functions import LayerErrorFunction, L2LEF, DotProdLEF
 
 
 def get_leaf_layers(module: torch.nn.Module):
@@ -39,7 +39,7 @@ class SigpropTrainer(Trainer):
         self.layers = list(self.model.children()
                            if not deep_sp else get_leaf_layers(self.model))
         if lef is None:
-            self.lef = L2LEF()
+            self.lef = DotProdLEF()
         else:
             self.lef = lef
 
